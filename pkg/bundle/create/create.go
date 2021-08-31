@@ -75,7 +75,7 @@ func (c creator) CreateFull(ctx context.Context) error {
 
 	// Read in current metadata
 	meta := v1alpha1.Metadata{}
-	switch err := backend.ReadMetadata(ctx, &meta); {
+	switch err := backend.ReadMetadata(ctx, &meta, config.MetadataBasePath); {
 	case err != nil && !errors.Is(err, storage.ErrMetadataNotExist):
 		return err
 	case err == nil && len(meta.PastMirrors) != 0:
@@ -208,7 +208,7 @@ func (c creator) CreateDiff(ctx context.Context) error {
 
 	// Read in current metadata
 	meta := v1alpha1.Metadata{}
-	switch err := backend.ReadMetadata(ctx, &meta); {
+	switch err := backend.ReadMetadata(ctx, &meta, config.MetadataBasePath); {
 	case err != nil && !errors.Is(err, storage.ErrMetadataNotExist):
 		return err
 	case (err != nil && errors.Is(err, storage.ErrMetadataNotExist)) || len(meta.PastMirrors) == 0:

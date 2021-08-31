@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/RedHatGov/bundle/pkg/bundle/publish"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"github.com/RedHatGov/bundle/pkg/bundle/publish"
 )
 
 type publishOpts struct {
@@ -27,7 +27,7 @@ func newPublishCmd(ro *rootOpts) *cobra.Command {
 			cleanup := setupFileHook(opts.dir)
 			defer cleanup()
 
-			if err := publish.Publish(cmd.Context(), opts.dir, opts.archivePath, opts.toMirror); err != nil {
+			if err := publish.Publish(cmd.Context(), opts.dir, opts.archivePath, opts.toMirror, opts.dryRun, opts.skipTLS); err != nil {
 				logrus.Fatal(err)
 			}
 		},

@@ -15,6 +15,7 @@ import (
 type Archiver interface {
 	String() string
 	Archive([]string, string) error
+	Extract(string, string, string) error
 	Unarchive(string, string) error
 	Write(archiver.File) error
 	Create(io.Writer) error

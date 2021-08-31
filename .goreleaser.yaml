@@ -1,0 +1,28 @@
+project_name: oc-bundle
+builds:
+  - main: cmd/oc-bundle/main.go
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -tags=json1
+release:
+
+  prerelease: auto
+
+  header: |
+    ## RedHat4Gov bundle project ({{ .Date }})
+
+    Welcome to this new release!
+
+  footer: |
+    ## Thanks!
+
+    Those were the changes on {{ .Tag }}!
+
+  name_template: "{{.ProjectName}}-v{{.Version}} {{.Env.USER}}"
