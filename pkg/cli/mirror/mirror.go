@@ -76,7 +76,7 @@ func NewMirrorCmd() *cobra.Command {
 	o.BindFlags(cmd.Flags())
 	o.RootOptions.BindFlags(cmd.PersistentFlags())
 
-	cmd.AddCommand(version.NewVersionCommand(f, o.RootOptions))
+	cmd.AddCommand(version.NewVersionCommand(o.RootOptions))
 	cmd.AddCommand(list.NewListCommand(f, o.RootOptions))
 	cmd.AddCommand(describe.NewDescribeCommand(f, o.RootOptions))
 

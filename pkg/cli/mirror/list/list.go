@@ -32,7 +32,7 @@ func NewListCommand(f kcmdutil.Factory, ro *cli.RootOptions) *cobra.Command {
 
 	cmd.AddCommand(NewOperatorsCommand(f, ro))
 	cmd.AddCommand(NewReleasesCommand(f, ro))
-	cmd.AddCommand(NewUpdatesCommand(f, ro))
+	cmd.AddCommand(NewUpdatesCommand(ro))
 
 	return cmd
 }
