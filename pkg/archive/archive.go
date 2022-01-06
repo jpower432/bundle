@@ -39,7 +39,7 @@ type packager struct {
 	Archiver
 }
 
-// NewArchiver creates a new archiver for tar archive manipultation
+// NewArchiver creates a new archiver for tar archive manipulation
 func NewArchiver() Archiver {
 	return &archiver.Tar{
 		OverwriteExisting:      true,
@@ -71,7 +71,7 @@ func NewPackager(manifests []v1alpha1.Manifest, blobs []v1alpha1.Blob) *packager
 	}
 }
 
-// CreateSplitAchrive will create multiple tar archives from source directory
+// CreateSplitArchive CreateSplitArchive will create multiple tar archives from source directory
 func (p *packager) CreateSplitArchive(ctx context.Context, backend storage.Backend, maxSplitSize int64, destDir, sourceDir, prefix string, skipCleanup bool) error {
 
 	// Declare split variables

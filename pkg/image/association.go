@@ -68,6 +68,7 @@ type Association struct {
 	LayerDigests []string `json:"layerDigests,omitempty"`
 }
 
+//goland:noinspection ALL
 type ImageType int
 
 const (
@@ -273,7 +274,7 @@ func ReadImageMapping(mappingsPath string) (map[string]string, error) {
 }
 
 func AssociateImageLayers(rootDir string, imgMappings map[string]string, images []string, typ ImageType) (AssociationSet, utilerrors.Aggregate) {
-	errs := []error{}
+	var errs []error
 	bundleAssociations := AssociationSet{}
 
 	skipParse := func(ref string) bool {

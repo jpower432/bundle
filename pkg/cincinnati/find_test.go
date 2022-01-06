@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFindLastestRelease(t *testing.T) {
+func TestFindLatestRelease(t *testing.T) {
 	channelName := "test-channel"
 
 	tests := []struct {
@@ -65,7 +65,7 @@ func TestFindLastestRelease(t *testing.T) {
 				},
 			}
 
-			ch, ver, err := FindLastRelease(meta, channelName)
+			ch, ver, err := FindLastRelease(meta)
 
 			if len(test.err) != 0 {
 				require.Equal(t, err.Error(), test.err)

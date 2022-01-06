@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type MirrorOptions struct {
 	*cli.RootOptions
 	OutputDir        string

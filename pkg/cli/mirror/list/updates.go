@@ -31,7 +31,7 @@ type UpdatesOptions struct {
 	ConfigPath string
 }
 
-func NewUpdatesCommand(f kcmdutil.Factory, ro *cli.RootOptions) *cobra.Command {
+func NewUpdatesCommand(ro *cli.RootOptions) *cobra.Command {
 	o := UpdatesOptions{}
 	o.RootOptions = ro
 
@@ -97,7 +97,7 @@ func (o *UpdatesOptions) Run(ctx context.Context) error {
 }
 
 func (o UpdatesOptions) releaseUpdates(ctx context.Context, cfg v1alpha1.ImageSetConfiguration, meta v1alpha1.Metadata) error {
-	uuid := uuid.New()
+	identifier := uuid.New()
 	// QUESTION(jpower): Handle multiple arch?
 	arch := "amd64"
 	logrus.Info("Getting release update information")
@@ -107,7 +107,7 @@ func (o UpdatesOptions) releaseUpdates(ctx context.Context, cfg v1alpha1.ImageSe
 			url = cincinnati.OkdUpdateURL
 		}
 
-		client, upstream, err := cincinnati.NewClient(url, uuid)
+		client, upstream, err := cincinnati.NewClient(url, identifier)
 		if err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func (o UpdatesOptions) releaseUpdates(ctx context.Context, cfg v1alpha1.ImageSe
 		// have been made in the target channel list
 		// all versions
 		var vers []semver.Version
-		lastCh, ver, err := cincinnati.FindLastRelease(meta, ch.Name)
+		lastCh, ver, err := cincinnati.FindLastRelease(meta)
 		switch {
 		case err != nil && !errors.Is(err, cincinnati.ErrNoPreviousRelease):
 			return err

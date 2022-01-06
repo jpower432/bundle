@@ -27,7 +27,7 @@ const (
 
 	// Timeout when calling upstream Cincinnati stack.
 	getUpdatesTimeout = time.Minute * 60
-	// Update urls
+	// UpdateUrl Update urls
 	UpdateUrl    = "https://api.openshift.com/api/upgrades_info/v1/graph"
 	OkdUpdateURL = "https://origin-release.ci.openshift.org/graph"
 )
@@ -46,13 +46,13 @@ func NewClient(u string, id uuid.UUID) (Client, *url.URL, error) {
 		return Client{}, nil, err
 	}
 
-	tls, err := getTLSConfig()
+	cfg, err := getTLSConfig()
 	if err != nil {
 		return Client{}, nil, err
 	}
 
 	transport := &http.Transport{
-		TLSClientConfig: tls,
+		TLSClientConfig: cfg,
 		Proxy:           http.ProxyFromEnvironment,
 	}
 	return Client{id: id, transport: transport}, upstream, nil
@@ -267,7 +267,7 @@ func (c Client) GetChannelLatest(ctx context.Context, uri *url.URL, arch string,
 	}
 
 	// Find the all versions within the graph.
-	Vers := []semver.Version{}
+	var Vers []semver.Version
 	for _, node := range graph.Nodes {
 
 		Vers = append(Vers, node.Version)
@@ -315,7 +315,7 @@ func (c Client) GetChannels(ctx context.Context, uri *url.URL, channel string) (
 	return channels, nil
 }
 
-// GetVersion will return all OCP/OKD versions in a specified channel fetches the current and requested (if applicable) update payload from the specified
+// GetVersions GetVersion will return all OCP/OKD versions in a specified channel fetches the current and requested (if applicable) update payload from the specified
 // upstream Cincinnati stack given the current version and channel
 func (c Client) GetVersions(ctx context.Context, uri *url.URL, channel string) ([]semver.Version, error) {
 	// Prepare parametrized cincinnati query.
@@ -331,7 +331,7 @@ func (c Client) GetVersions(ctx context.Context, uri *url.URL, channel string) (
 		return nil, fmt.Errorf("error getting graph data for channel %s", channel)
 	}
 	// Find the all versions within the graph.
-	Vers := []semver.Version{}
+	var Vers []semver.Version
 	for _, node := range graph.Nodes {
 
 		Vers = append(Vers, node.Version)

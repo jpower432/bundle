@@ -107,6 +107,7 @@ func TestSplitArchive(t *testing.T) {
 			if strings.Contains(info.Name(), tt.want) {
 
 				if info.Size() > tt.maxSplitSize {
+					//goland:noinspection GoErrorStringFormat
 					return fmt.Errorf("Test %s: Expected '%v' to be less than '%v'", tt.name, info.Size(), tt.maxSplitSize)
 				}
 

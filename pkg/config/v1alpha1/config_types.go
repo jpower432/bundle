@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// ImageSetConfiguration object kind.
+// ImageSetConfigurationKind ImageSetConfiguration object kind.
 const ImageSetConfigurationKind = "ImageSetConfiguration"
 
 // ImageSetConfiguration configures image set creation.

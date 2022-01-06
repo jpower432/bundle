@@ -148,7 +148,7 @@ func TestRender(t *testing.T) {
 
 func TestFindImages(t *testing.T) {
 
-	ipaths := []string{}
+	var ipaths []string
 	path := "testdata/artifacts/podinfo-6.0.0.tgz"
 	want := []v1alpha1.AdditionalImages{
 		{Image: v1alpha1.Image{

@@ -37,12 +37,12 @@ func TestBuildCatalogLayer(t *testing.T) {
 
 	add, err := addLayer(filepath.Join(tmpdir, "test"), "binary")
 	require.NoError(t, err)
-	delete, err := deleteLayer(old)
+	del, err := deleteLayer(old)
 	require.NoError(t, err)
 
 	o := &MirrorOptions{
 		DestSkipTLS:   true,
 		UserNamespace: "custom",
 	}
-	require.NoError(t, o.buildCatalogLayer(context.Background(), targetRef, targetRef, t.TempDir(), []v1.Layer{add, delete}...))
+	require.NoError(t, o.buildCatalogLayer(context.Background(), targetRef, targetRef, t.TempDir(), []v1.Layer{add, del}...))
 }

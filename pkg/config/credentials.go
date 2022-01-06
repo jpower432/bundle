@@ -59,7 +59,7 @@ func CreateContext(secret []byte, skipVerification, skipTLS bool) (*registryclie
 	return ctx, nil
 }
 
-// CreateDefault a default context for the registryClient of `oc mirror`
+// CreateDefaultContext CreateDefault a default context for the registryClient of `oc mirror`
 func CreateDefaultContext(skipTLS bool) (*registryclient.Context, error) {
 	// TODO: create a context based on user provided
 	// pull secret

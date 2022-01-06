@@ -146,15 +146,15 @@ func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string, file
 				return nil, err
 			}
 
-			delete, err := deleteLayer("/configs/.wh.index.json")
+			del, err := deleteLayer("/configs/.wh.index.json")
 			if err != nil {
-				return refs, fmt.Errorf("error creating delete layer: %v", err)
+				return refs, fmt.Errorf("error creating del layer: %v", err)
 			}
 			add, err := addLayer(renderedPath, "/configs")
 			if err != nil {
 				return refs, fmt.Errorf("error creating add layer: %v", err)
 			}
-			layers = append(layers, delete, add)
+			layers = append(layers, del, add)
 
 			srcImage = ctlgRef.Ref.Exact()
 

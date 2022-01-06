@@ -360,7 +360,7 @@ func TestCalculateUpgrades(t *testing.T) {
 	}
 }
 
-func TestnodeUnmarshalJSON(t *testing.T) {
+func TestNodeUnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		raw []byte
 
@@ -495,7 +495,7 @@ func getHandler(t *testing.T, requestQuery chan<- string) http.HandlerFunc {
 			"edges": [[0,1],[1,2],[1,3],[5,6]]
 		  }`))
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -599,7 +599,7 @@ func getHandlerMulti(t *testing.T, requestQuery chan<- string) http.HandlerFunc 
 				"edges": [[0,1],[1,2],[2,6],[4,5]]
 			  }`))
 			if err != nil {
-				t.Fatal(err)
+				t.Error(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}

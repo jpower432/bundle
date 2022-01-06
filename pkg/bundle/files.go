@@ -13,7 +13,7 @@ import (
 	"github.com/openshift/oc-mirror/pkg/config/v1alpha1"
 )
 
-// ReconcileManifest gather all manifests that were collected during a run
+// ReconcileManifests ReconcileManifest gather all manifests that were collected during a run
 // and checks against the current list
 func ReconcileManifests() (manifests []v1alpha1.Manifest, err error) {
 

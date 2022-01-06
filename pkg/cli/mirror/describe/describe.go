@@ -21,6 +21,7 @@ import (
 	"github.com/openshift/oc-mirror/pkg/metadata/storage"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type DescribeOptions struct {
 	*cli.RootOptions
 	From string
@@ -63,7 +64,7 @@ func (o *DescribeOptions) Run(ctx context.Context) error {
 	a := archive.NewArchiver()
 	var meta v1alpha1.Metadata
 
-	// Get archive with metadata
+	// Get arc with metadata
 	filesInArchive, err := bundle.ReadImageSet(a, o.From)
 
 	if err != nil {
@@ -77,13 +78,13 @@ func (o *DescribeOptions) Run(ctx context.Context) error {
 	}
 	defer os.RemoveAll(tmpdir)
 
-	archive, ok := filesInArchive[config.MetadataFile]
+	arc, ok := filesInArchive[config.MetadataFile]
 	if !ok {
-		return errors.New("metadata is not in archive")
+		return errors.New("metadata is not in arc")
 	}
 
 	logrus.Debug("Extracting incoming metadata")
-	if err := a.Extract(archive, config.MetadataBasePath, tmpdir); err != nil {
+	if err := a.Extract(arc, config.MetadataBasePath, tmpdir); err != nil {
 		return err
 	}
 

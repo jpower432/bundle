@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Metadata object kind.
+// MetadataKind Metadata object kind.
 const MetadataKind = "Metadata"
 
 // Metadata configures image set creation.

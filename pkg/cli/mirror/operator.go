@@ -34,14 +34,14 @@ import (
 )
 
 var (
-	// Pinned to upstream opm v1.19.0 (k8s 1.21).
+	// OPMImage Pinned to upstream opm v1.19.0 (k8s 1.21).
 	OPMImage = "quay.io/operator-framework/opm@sha256:d31c6ea5c50be93d6eb94d2b508f0208e84a308c011c6454ebf291d48b37df19"
 )
 
 // OperatorOptions configures either a Full or Diff mirror operation
 // on a particular operator catalog image.
 type OperatorOptions struct {
-	MirrorOptions
+	*MirrorOptions
 
 	SkipImagePin bool
 	Logger       *logrus.Entry
@@ -49,7 +49,7 @@ type OperatorOptions struct {
 	tmp string
 }
 
-func NewOperatorOptions(mo MirrorOptions) *OperatorOptions {
+func NewOperatorOptions(mo *MirrorOptions) *OperatorOptions {
 	return &OperatorOptions{MirrorOptions: mo}
 }
 
@@ -477,7 +477,7 @@ func (o *OperatorOptions) associateDeclarativeConfigImageLayers(ctlgRef imagesou
 type blockedFunc func(imgreference.DockerImageReference) bool
 
 func (o *OperatorOptions) mirrorMappings(opts *catalog.MirrorCatalogOptions, mappings map[string]string, isBlockedFuncs ...blockedFunc) (err error) {
-	mmappings := []imgmirror.Mapping{}
+	var mmappings []imgmirror.Mapping
 	for fromStr, toStr := range mappings {
 
 		m := imgmirror.Mapping{Name: fromStr}

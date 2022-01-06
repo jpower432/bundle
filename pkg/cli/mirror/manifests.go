@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// Copied from https://github.com/openshift/oc/blob/5d8dfa1c2e8e7469d69d76f21e0a166a0de8663b/pkg/cli/admin/catalog/mirror.go#L549
+// ICSPGenerator Copied from https://github.com/openshift/oc/blob/5d8dfa1c2e8e7469d69d76f21e0a166a0de8663b/pkg/cli/admin/catalog/mirror.go#L549
 // Changes made are breaking ICSP and Catalog Source generation into different functions
 type ICSPGenerator struct {
 	ImageName        string
@@ -87,7 +87,7 @@ func (g *ICSPGenerator) Run(icspScope string, byteLimit int) (icsps []operatorv1
 }
 
 func aggregateICSPs(icsps [][]byte) []byte {
-	aggregation := []byte{}
+	var aggregation []byte
 	for _, icsp := range icsps {
 		aggregation = append(aggregation, []byte("---\n")...)
 		aggregation = append(aggregation, icsp...)

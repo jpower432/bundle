@@ -8,11 +8,12 @@ import (
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
+//goland:noinspection ALL
 type VersionOptions struct {
 	*cli.RootOptions
 }
 
-func NewVersionCommand(f kcmdutil.Factory, ro *cli.RootOptions) *cobra.Command {
+func NewVersionCommand(ro *cli.RootOptions) *cobra.Command {
 	o := VersionOptions{
 		ro,
 	}

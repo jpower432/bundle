@@ -34,14 +34,14 @@ var archMap = map[string]string{
 // ReleaseOptions configures either a Full or Diff mirror operation
 // on a particular release image.
 type ReleaseOptions struct {
-	MirrorOptions
+	*MirrorOptions
 	release string
 	arch    []string
 	uuid    uuid.UUID
 }
 
 // NewReleaseOptions defaults ReleaseOptions.
-func NewReleaseOptions(mo MirrorOptions, flags *pflag.FlagSet) *ReleaseOptions {
+func NewReleaseOptions(mo *MirrorOptions, flags *pflag.FlagSet) *ReleaseOptions {
 	var arch []string
 	opts := mo.FilterOptions
 	opts.Complete(flags)
@@ -70,12 +70,12 @@ func (o *ReleaseOptions) GetReleases(ctx context.Context, meta v1alpha1.Metadata
 
 	for _, ch := range cfg.Mirror.OCP.Channels {
 
-		url := cincinnati.UpdateUrl
+		uri := cincinnati.UpdateUrl
 		if ch.Name == "okd" {
-			url = cincinnati.OkdUpdateURL
+			uri = cincinnati.OkdUpdateURL
 		}
 
-		client, upstream, err := cincinnati.NewClient(url, o.uuid)
+		client, upstream, err := cincinnati.NewClient(uri, o.uuid)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +125,7 @@ func (o *ReleaseOptions) getDownloads(ctx context.Context, client cincinnati.Cli
 
 	// If no release has been downloaded for the
 	// channel, download the requested version
-	lastCh, lastVer, err := cincinnati.FindLastRelease(meta, channel)
+	lastCh, lastVer, err := cincinnati.FindLastRelease(meta)
 	currCh := channel
 	reverse := false
 	logrus.Infof("Downloading requested release %s", requested.String())
@@ -151,7 +151,7 @@ func (o *ReleaseOptions) getDownloads(ctx context.Context, client cincinnati.Cli
 	}
 
 	// This dumps the available upgrades from the last downloaded version
-	current, new, updates, err := client.CalculateUpgrades(ctx, url, arch, lastCh, currCh, lastVer, requested)
+	current, newest, updates, err := client.CalculateUpgrades(ctx, url, arch, lastCh, currCh, lastVer, requested)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upgrade graph: %v", err)
 	}
@@ -165,22 +165,22 @@ func (o *ReleaseOptions) getDownloads(ctx context.Context, client cincinnati.Cli
 	}
 
 	// If reverse graph download the current version
-	// else add new to downloads
+	// else add newest to downloads
 	if reverse {
 		download := download{
 			Update: current,
 			arch:   arch,
 		}
 		downloads[current.Image] = download
-		// Remove new from updates as it has already
+		// Remove newest from updates as it has already
 		// been downloaded
-		delete(downloads, new.Image)
+		delete(downloads, newest.Image)
 	} else {
 		download := download{
-			Update: new,
+			Update: newest,
 			arch:   arch,
 		}
-		downloads[new.Image] = download
+		downloads[newest.Image] = download
 	}
 
 	return downloads, nil
@@ -236,7 +236,9 @@ func (o *ReleaseOptions) mirror(secret []byte, toDir string, downloads map[strin
 			// Update all images associated with a release to the
 			// release images so they form one keyset for publising
 			for _, img := range images {
-				assocs.UpdateKey(img, o.release)
+				if err := assocs.UpdateKey(img, o.release); err != nil {
+					return nil, err
+				}
 			}
 
 			allAssocs.Merge(assocs)
@@ -300,11 +302,11 @@ func (o *ReleaseOptions) getMapping(opts release.MirrorOptions, arch, version st
 		if nameIdx == -1 {
 			return nil, nil, fmt.Errorf("image missing version %s for image %q", version, srcRef)
 		}
-		image := dstRef[nameIdx+len(version):]
-		image = strings.TrimPrefix(image, "-")
+		img := dstRef[nameIdx+len(version):]
+		img = strings.TrimPrefix(img, "-")
 		names := []string{version, arch}
-		if image != "" {
-			names = append(names, image)
+		if img != "" {
+			names = append(names, img)
 		}
 		dstRef = strings.Join(names, "-")
 
