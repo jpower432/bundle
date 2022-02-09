@@ -211,7 +211,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 			return err
 		}
 
-		meta, mapping, err = o.Create(cmd.Context(), cfg)
+		meta, mapping, err = o.FromConfig(cmd.Context(), cfg)
 		if err != nil {
 			return err
 		}
@@ -260,7 +260,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 		// Publish from disk to registry
 		// this takes care of syncing the metadata to the
 		// registry backends and generating the CatalogSource
-		mapping, err = o.Publish(cmd.Context())
+		mapping, err = o.FromDisk(cmd.Context())
 		if err != nil {
 			return err
 		}
@@ -279,7 +279,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 		if err := bundle.MakeCreateDirs(o.Dir); err != nil {
 			return err
 		}
-		meta, mapping, err = o.Create(cmd.Context(), cfg)
+		meta, mapping, err = o.FromConfig(cmd.Context(), cfg)
 		if err != nil {
 			return err
 		}

@@ -16,8 +16,8 @@ import (
 	"github.com/openshift/oc-mirror/pkg/metadata/storage"
 )
 
-// Create will plan a mirroring operation based on provided configuration
-func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha1.ImageSetConfiguration) (v1alpha1.Metadata, image.TypedImageMapping, error) {
+// FromConfig will plan a mirroring operation based on provided configuration
+func (o *MirrorOptions) FromConfig(ctx context.Context, cfg v1alpha1.ImageSetConfiguration) (v1alpha1.Metadata, image.TypedImageMapping, error) {
 	// Determine stateless or stateful mode.
 	// Empty storage configuration will trigger a metadata cleanup
 	// action and labels metadata as single use
@@ -25,7 +25,7 @@ func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha1.ImageSetConfigu
 	var backend storage.Backend
 	var meta v1alpha1.Metadata
 	var err error
-	if (v1alpha1.StorageConfig{} == cfg.StorageConfig) {
+	if !cfg.StorageConfig.IsSet() {
 		meta.SingleUse = true
 		logrus.Warnf("backend is not configured in %s, using stateless mode", o.ConfigPath)
 		cfg.StorageConfig.Local = &v1alpha1.LocalConfig{Path: path}

@@ -98,7 +98,7 @@ func TestMetadataError(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			_, err = opts.Publish(ctx)
+			_, err = opts.FromDisk(ctx)
 
 			if !tt.wantErr {
 				require.NoError(t, err)

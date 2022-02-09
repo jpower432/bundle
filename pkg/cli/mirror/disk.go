@@ -55,8 +55,8 @@ func (e *ErrArchiveFileNotFound) Error() string {
 	return fmt.Sprintf("file %s not found in archive", e.filename)
 }
 
-// Publish will plan a mirroring operation based on provided imageset on disk
-func (o *MirrorOptions) Publish(ctx context.Context) (image.TypedImageMapping, error) {
+// FromDisk will plan and execute a mirroring operation based on provided imageset on disk
+func (o *MirrorOptions) FromDisk(ctx context.Context) (image.TypedImageMapping, error) {
 
 	logrus.Infof("Publishing image set from archive %q to registry %q", o.From, o.ToMirror)
 

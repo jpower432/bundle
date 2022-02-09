@@ -79,7 +79,7 @@ func TestCreate(t *testing.T) {
 		},
 		OutputDir: path,
 	}
-	_, mappings, err := opts.Create(ctx, cfg)
+	_, mappings, err := opts.FromConfig(ctx, cfg)
 	require.NoError(t, err)
 	// One mapping for OPM and one for the requested image
 	require.Len(t, mappings, 2)
