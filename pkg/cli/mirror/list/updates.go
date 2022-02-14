@@ -106,15 +106,8 @@ func (o UpdatesOptions) releaseUpdates(ctx context.Context, cfg v1alpha1.ImageSe
 	arch := "amd64"
 	logrus.Info("Getting release update information")
 	for _, ch := range cfg.Mirror.OCP.Channels {
-		url := cincinnati.UpdateUrl
-		if ch.Name == "okd" {
-			url = cincinnati.OkdUpdateURL
-		}
 
-		client, upstream, err := cincinnati.NewClient(url, uuid)
-		if err != nil {
-			return err
-		}
+		client, err := cincinnati.NewOCPClient(uuid)
 
 		// Find the last release downloads if no downloads
 		// have been made in the target channel list
@@ -132,13 +125,13 @@ func (o UpdatesOptions) releaseUpdates(ctx context.Context, cfg v1alpha1.ImageSe
 		case err != nil && !errors.Is(err, cincinnati.ErrNoPreviousRelease):
 			return err
 		case err != nil:
-			vers, err = client.GetVersions(ctx, upstream, ch.Name)
+			vers, err = cincinnati.GetVersions(ctx, client, ch.Name)
 			if err != nil {
 				return err
 			}
 		default:
 			logrus.Debugf("Finding releases between %s and %s", first.String(), last.String())
-			_, _, upgrades, err := client.CalculateUpgrades(ctx, upstream, arch, firstCh, lastCh, first, last)
+			_, _, upgrades, err := cincinnati.CalculateUpgrades(ctx, client, arch, firstCh, lastCh, first, last)
 			if err != nil {
 				return err
 			}

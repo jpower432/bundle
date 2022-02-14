@@ -29,6 +29,7 @@ type ImageSetConfigurationSpec struct {
 
 type Mirror struct {
 	OCP              OCP                `json:"ocp,omitempty"`
+	OKD              OCP                `json:"okd,omitempty"`
 	Operators        []Operator         `json:"operators,omitempty"`
 	AdditionalImages []AdditionalImages `json:"additionalImages,omitempty"`
 	Helm             Helm               `json:"helm,omitempty"`

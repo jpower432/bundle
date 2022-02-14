@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
+	"github.com/openshift/oc-mirror/pkg/cincinnati"
 	"github.com/openshift/oc-mirror/pkg/config"
 	"github.com/openshift/oc-mirror/pkg/config/v1alpha1"
 	"github.com/openshift/oc-mirror/pkg/image"
@@ -97,7 +98,24 @@ func (o *MirrorOptions) run(ctx context.Context, cfg *v1alpha1.ImageSetConfigura
 	mmappings := image.TypedImageMapping{}
 
 	if len(cfg.Mirror.OCP.Channels) != 0 {
-		release := NewReleaseOptions(o)
+		client, err := cincinnati.NewOCPClient(uuid.New())
+		if err != nil {
+			return mmappings, err
+		}
+		release := NewReleaseOptions(o, client)
+		mappings, err := release.Plan(ctx, meta.PastMirror, cfg)
+		if err != nil {
+			return mmappings, err
+		}
+		mmappings.Merge(mappings)
+	}
+
+	if len(cfg.Mirror.OKD.Channels) != 0 {
+		client, err := cincinnati.NewOKDClient(uuid.New())
+		if err != nil {
+			return mmappings, err
+		}
+		release := NewReleaseOptions(o, client)
 		mappings, err := release.Plan(ctx, meta.PastMirror, cfg)
 		if err != nil {
 			return mmappings, err
