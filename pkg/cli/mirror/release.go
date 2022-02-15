@@ -134,6 +134,10 @@ func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, 
 		mmapping.Merge(mappings)
 	}
 
+	for _, line := range mmapping {
+		logrus.Infof("Adding image %s to mapping\n", line.TypedImageReference.String())
+	}
+
 	return mmapping, nil
 }
 
@@ -237,7 +241,8 @@ func (o *ReleaseOptions) newMirrorReleaseOptions(fileDir string) (*release.Mirro
 func (o *ReleaseOptions) getMapping(opts release.MirrorOptions) (image.TypedImageMapping, error) {
 	mappingPath := filepath.Join(o.Dir, mappingFile)
 	file, err := os.Create(mappingPath)
-	defer os.Remove(mappingPath)
+	// No longer deleting mappingPath for debugging
+	//defer os.Remove(mappingPath)
 	if err != nil {
 		return nil, err
 	}
@@ -245,6 +250,8 @@ func (o *ReleaseOptions) getMapping(opts release.MirrorOptions) (image.TypedImag
 
 	opts.IOStreams.Out = file
 	opts.ToMirror = true
+
+	logrus.Infof("Extrating image from %v\n", opts.From)
 
 	if err := opts.Validate(); err != nil {
 		return nil, err
@@ -256,6 +263,10 @@ func (o *ReleaseOptions) getMapping(opts release.MirrorOptions) (image.TypedImag
 	mappings, err := image.ReadImageMapping(mappingPath, " ", image.TypeOCPRelease)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, line := range mappings {
+		logrus.Infof("Adding map line %s to mapping\n", line)
 	}
 
 	return mappings, nil

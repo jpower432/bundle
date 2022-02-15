@@ -28,7 +28,7 @@ func ParseTypedImage(image string, typ ImageType) (TypedImage, error) {
 
 type TypedImageMapping map[TypedImage]TypedImage
 
-// ToRegistry will convet a mapping to disk to a registry to registry mapping
+// ToRegistry will convert a mapping to a destination registry mapping
 func (m TypedImageMapping) ToRegistry(registry, namespace string) {
 	for src, dest := range m {
 		dest.Type = imagesource.DestinationRegistry

@@ -287,6 +287,9 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 		// TODO(jpower432): Investigate whether oc can produce
 		// registry to registry mapping
 		mapping.ToRegistry(o.ToMirror, o.UserNamespace)
+		for src, dest := range mapping {
+			logrus.Infof("Copying image %s to %s in mapping\n", src.TypedImageReference.String(), dest.TypedImageReference.String())
+		}
 
 		if o.DryRun {
 			mappingPath := filepath.Join(o.Dir, mappingFile)
@@ -414,6 +417,8 @@ func (o *MirrorOptions) mirrorMappings(cfg v1alpha2.ImageSetConfiguration, image
 	if err != nil {
 		return err
 	}
+
+	logrus.Infof("Dry Run is %v", opts.DryRun)
 
 	// Create mapping from source and destination images
 	var mappings []mirror.Mapping
