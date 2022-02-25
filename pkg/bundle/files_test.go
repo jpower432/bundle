@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/openshift/oc-mirror/pkg/config/v1alpha2"
+	"github.com/openshift/oc-mirror/pkg/image"
 	"github.com/stretchr/testify/require"
 )
 
 func TestReconcileV2Dir(t *testing.T) {
 	type fields struct {
-		files     []v1alpha2.Blob
+		files     []string
 		dirPaths  []string
 		filePaths []string
 		path      string
@@ -21,14 +22,14 @@ func TestReconcileV2Dir(t *testing.T) {
 	tests := []struct {
 		name          string
 		fields        fields
-		wantBlobs     []v1alpha2.Blob
-		wantManifests []v1alpha2.Manifest
+		wantBlobs     []string
+		wantManifests []string
 		wantErr       func(string) string
 	}{
 		{
 			name: "Valid/FirstRun",
 			fields: fields{
-				files: []v1alpha2.Blob{},
+				files: []string{},
 				dirPaths: []string{
 					filepath.Join("v2", "test", "blobs"),
 					filepath.Join("v2", "test", "manifests"),
@@ -42,23 +43,13 @@ func TestReconcileV2Dir(t *testing.T) {
 				},
 				path: "v2",
 			},
-			wantBlobs: []v1alpha2.Blob{
-				{ID: "test1", NamespaceName: "test"},
-				{ID: "test3", NamespaceName: "test"},
-			},
-			wantManifests: []v1alpha2.Manifest{
-				{
-					Name:          filepath.Join("v2", "test", "manifests", "test4"),
-					NamespaceName: "test",
-				},
-			},
+			wantBlobs:     []string{"test1", "test3"},
+			wantManifests: []string{filepath.Join("v2", "test", "manifests", "test4")},
 		},
 		{
 			name: "Valid/DifferentialRun",
 			fields: fields{
-				files: []v1alpha2.Blob{
-					{ID: "test1", NamespaceName: "test"},
-				},
+				files: []string{"test1"},
 				dirPaths: []string{
 					filepath.Join("v2", "test", "blobs"),
 					filepath.Join("v2", "test", "manifests"),
@@ -72,20 +63,13 @@ func TestReconcileV2Dir(t *testing.T) {
 				},
 				path: "v2",
 			},
-			wantBlobs: []v1alpha2.Blob{
-				{ID: "test3", NamespaceName: "test"},
-			},
-			wantManifests: []v1alpha2.Manifest{
-				{
-					Name:          filepath.Join("v2", "test", "manifests", "test4"),
-					NamespaceName: "test",
-				},
-			},
+			wantBlobs:     []string{"test3"},
+			wantManifests: []string{filepath.Join("v2", "test", "manifests", "test4")},
 		},
 		{
 			name: "Invalid/PathNameNotV2",
 			fields: fields{
-				files: []v1alpha2.Blob{},
+				files: []string{},
 				dirPaths: []string{
 					filepath.Join("v2", "test", "blobs"),
 					filepath.Join("v2", "test", "manifests"),
@@ -99,8 +83,8 @@ func TestReconcileV2Dir(t *testing.T) {
 				},
 				path: "",
 			},
-			wantBlobs:     []v1alpha2.Blob{},
-			wantManifests: []v1alpha2.Manifest{},
+			wantBlobs:     []string{},
+			wantManifests: []string{},
 			wantErr: func(s string) string {
 				return fmt.Sprintf("path %q is not a v2 directory", s)
 			},
@@ -110,13 +94,26 @@ func TestReconcileV2Dir(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			meta := v1alpha2.Metadata{
 				MetadataSpec: v1alpha2.MetadataSpec{
-					PastBlobs: test.fields.files,
+					PastMirror: v1alpha2.PastMirror{
+						Association: image.AssociationSet{"imgname@sha256:d31c6ea5c50be93d6eb94d2b508f0208e84a308c011c6454ebf291d48b37df19": map[string]image.Association{
+							"imgname@sha256:d31c6ea5c50be93d6eb94d2b508f0208e84a308c011c6454ebf291d48b37df19": {
+								Name:            "imgname@sha256:d31c6ea5c50be93d6eb94d2b508f0208e84a308c011c6454ebf291d48b37df19",
+								Path:            "single_manifest",
+								TagSymlink:      "latest",
+								ID:              "sha256:d31c6ea5c50be93d6eb94d2b508f0208e84a308c011c6454ebf291d48b37df19",
+								Type:            image.TypeGeneric,
+								ManifestDigests: nil,
+								LayerDigests:    test.fields.files,
+							},
+						}},
+					},
 				},
 			}
+
 			tmpdir := t.TempDir()
 			require.NoError(t, prepFiles(tmpdir, test.fields.dirPaths, test.fields.filePaths))
 			filenames := map[string]string{filepath.Join(tmpdir, test.fields.path): "v2"}
-			actualManifests, actualBlobs, err := ReconcileV2Dir(meta, filenames)
+			actualManifests, actualBlobs, err := ReconcileV2Dir(meta.PastMirror.Association, filenames)
 			if test.wantErr != nil {
 				require.EqualError(t, err, test.wantErr(tmpdir))
 			} else {

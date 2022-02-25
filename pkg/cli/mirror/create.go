@@ -61,6 +61,7 @@ func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfigu
 		meta.Uid = uuid.New()
 		thisRun.Sequence = 1
 		thisRun.Mirror = cfg.Mirror
+		thisRun.Association = image.AssociationSet{}
 		f := func(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error) {
 			if len(cfg.Mirror.Operators) != 0 {
 				operator := NewOperatorOptions(o)
@@ -85,6 +86,7 @@ func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfigu
 			return image.TypedImageMapping{}, nil
 		}
 		mmapping, err := o.run(ctx, &cfg, meta, f)
+		thisRun.Association = lastRun.Association
 		meta.PastMirror = thisRun
 		return meta, mmapping, err
 	}

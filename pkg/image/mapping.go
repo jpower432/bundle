@@ -123,7 +123,7 @@ func ReadImageMapping(mappingsPath, separator string, typ ImageType) (TypedImage
 
 // WriteImageMapping writes key map k/v to a mapping.txt file.
 func WriteImageMapping(m TypedImageMapping, mappingsPath string) error {
-	f, err := os.Create(mappingsPath)
+	f, err := os.Create(filepath.Clean(mappingsPath))
 	if err != nil {
 		return err
 	}

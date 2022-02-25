@@ -21,8 +21,11 @@ type ImageSetConfiguration struct {
 
 type ImageSetConfigurationSpec struct {
 	Mirror Mirror `json:"mirror"`
-	// ArchiveSize is the size of the segmented archive in GB
+	// ArchiveSize is the size of the segmented archive in GiB
 	ArchiveSize int64 `json:"archiveSize,omitempty"`
+	// BlobExpiration is the time in days between runs
+	// where blobs will be redownloaded
+	BlobExpiration int64
 	// StorageConfig for reading/writing metadata and files.
 	StorageConfig StorageConfig `json:"storageConfig"`
 }

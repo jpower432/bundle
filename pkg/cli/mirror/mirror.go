@@ -237,7 +237,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 			return errs
 		}
 		// Pack the images set
-		tmpBackend, err := o.Pack(cmd.Context(), assocs, meta, cfg.ArchiveSize)
+		tmpBackend, err := o.Pack(cmd.Context(), assocs, &meta, cfg.ArchiveSize, true)
 		if err != nil {
 			if errors.Is(err, ErrNoUpdatesExist) {
 				logrus.Infof("no updates detected, process stopping")
@@ -303,7 +303,12 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 		if err := o.mirrorMappings(cfg, mapping, destInsecure); err != nil {
 			return err
 		}
-
+		// Create assocations
+		assocs, errs := image.AssociateRemoteImageLayers(cmd.Context(), mapping, sourceInsecure)
+		if errs != nil {
+			return errs
+		}
+		meta.PastMirror.Association = assocs
 		// Process any catalog images
 		dir, err := o.createResultsDir()
 		if err != nil {
