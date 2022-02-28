@@ -10,5 +10,6 @@ mirror:
     headsOnly: false
     packages:
       - name: foo
+        startingVersion: 0.3.0
       - name: baz
         startingVersion: 1.0.1
