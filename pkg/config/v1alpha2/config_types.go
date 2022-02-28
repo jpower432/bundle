@@ -36,6 +36,20 @@ type Mirror struct {
 	Samples          []SampleImages     `json:"samples,omitempty"`
 }
 
+// IsHeadsOnly return whether the mirror is configured
+// in heads-only mode per the operator catalog entries
+// TODO(jpower432): add release headsOnly check
+// QUESTION(jpower432): Would it be preferable to have a user set
+// overall headsOnly key or infer from the configuration?
+func (m Mirror) IsHeadsOnly() bool {
+	for _, op := range m.Operators {
+		if op.IsHeadsOnly() {
+			return true
+		}
+	}
+	return false
+}
+
 type OCP struct {
 	Graph    bool             `json:"graph,omitempty"`
 	Channels []ReleaseChannel `json:"channels,omitempty"`

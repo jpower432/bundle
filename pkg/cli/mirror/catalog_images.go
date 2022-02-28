@@ -49,7 +49,7 @@ func (o *MirrorOptions) unpackCatalog(dstDir string, filesInArchive map[string]s
 	return found, nil
 }
 
-func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string) (image.TypedImageMapping, error) {
+func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string, headsOnly bool) (image.TypedImageMapping, error) {
 	refs := image.TypedImageMapping{}
 	var err error
 
@@ -125,7 +125,7 @@ func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string) (ima
 	}
 	defer reg.Destroy()
 
-	if err := o.processCatalogRefs(ctx, catalogsByImage, reg, resolver); err != nil {
+	if err := o.processCatalogRefs(ctx, catalogsByImage, reg, resolver, headsOnly); err != nil {
 		return nil, err
 	}
 
@@ -142,7 +142,7 @@ func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string) (ima
 	return refs, nil
 }
 
-func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage map[imagesource.TypedImageReference]string, reg operatorimage.Registry, resolver remotes.Resolver) error {
+func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage map[imagesource.TypedImageReference]string, reg operatorimage.Registry, resolver remotes.Resolver, headsOnly bool) error {
 	for ctlgRef, artifactDir := range catalogsByImage {
 		// An image for a particular catalog may not exist in the mirror registry yet,
 		// ex. when publish is run for the first time for a catalog (full/headsonly).
@@ -169,9 +169,31 @@ func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage 
 			return err
 		}
 		builder := NewCatalogBuilder(nameOpts, remoteOpts)
-		if _, _, rerr := resolver.Resolve(ctx, refExact); rerr == nil {
 
-			logrus.Infof("Catalog image %q found, rendering with new file-based catalog", refExact)
+		switch _, _, rerr := resolver.Resolve(ctx, refExact); {
+		case errors.Is(rerr, errdefs.ErrNotFound) || !headsOnly:
+			logrus.Infof("Catalog image %q found, building from file with file-based catalog ", refExact)
+
+			add, err := layerFromFile("/configs", filepath.Join(artifactDir, IndexDir, "index.json"))
+			if err != nil {
+				return fmt.Errorf("error creating add layer: %v", err)
+			}
+
+			// Since we are defining the FBC as index.json, remove
+			// any .yaml files from the initial image to ensure they are not processed instead
+			deleted, err := deleteLayer("/configs/.wh.index.yaml")
+			if err != nil {
+				return fmt.Errorf("error creating deleted layer: %v", err)
+			}
+			layers = append(layers, add, deleted)
+
+			layoutDir := filepath.Join(artifactDir, LayoutsDir)
+			layoutPath, err = builder.CreateLayout("", layoutDir)
+			if err != nil {
+				return fmt.Errorf("error creating OCI layout: %v", err)
+			}
+		case rerr == nil:
+			logrus.Infof("Catalog image %q found, rendering with file-based catalog", refExact)
 
 			dcDir := filepath.Join(artifactDir, IndexDir)
 			dc, err := action.Render{
@@ -214,33 +236,10 @@ func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage 
 			if err != nil {
 				return fmt.Errorf("error creating OCI layout: %v", err)
 			}
-
-		} else if errors.Is(rerr, errdefs.ErrNotFound) {
-
-			logrus.Infof("Catalog image %q not found, using new file-based catalog", refExact)
-
-			add, err := layerFromFile("/configs", filepath.Join(artifactDir, IndexDir, "index.json"))
-			if err != nil {
-				return fmt.Errorf("error creating add layer: %v", err)
-			}
-
-			// Since we are defining the FBC as index.json, remove
-			// any .yaml files from the initial image to ensure they are not processed instead
-			deleted, err := deleteLayer("/configs/.wh.index.yaml")
-			if err != nil {
-				return fmt.Errorf("error creating deleted layer: %v", err)
-			}
-			layers = append(layers, add, deleted)
-
-			layoutDir := filepath.Join(artifactDir, LayoutsDir)
-			layoutPath, err = builder.CreateLayout("", layoutDir)
-			if err != nil {
-				return fmt.Errorf("error creating OCI layout: %v", err)
-			}
-
-		} else {
+		default:
 			return fmt.Errorf("error resolving existing catalog image %q: %v", refExact, rerr)
 		}
+
 		if err := builder.Run(ctx, refExact, layoutPath, layers...); err != nil {
 			return fmt.Errorf("error building catalog layers: %v", err)
 		}

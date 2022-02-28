@@ -275,7 +275,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 		if err != nil {
 			return err
 		}
-		if err := o.generateAllICSPs(mapping, dir); err != nil {
+		if err := o.generateAllManifests(mapping, dir); err != nil {
 			return err
 		}
 	case len(o.ToMirror) > 0 && len(o.ConfigPath) > 0:
@@ -316,16 +316,14 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 			return err
 		}
 		if len(cfg.Mirror.Operators) > 0 {
-			ctlgRefs, err := o.rebuildCatalogs(cmd.Context(), filepath.Join(o.Dir, config.SourceDir))
+
+			ctlgRefs, err := o.rebuildCatalogs(cmd.Context(), filepath.Join(o.Dir, config.SourceDir), cfg.Mirror.IsHeadsOnly())
 			if err != nil {
 				return fmt.Errorf("error rebuilding catalog images from file-based catalogs: %v", err)
 			}
-			if err := WriteCatalogSource(ctlgRefs, dir); err != nil {
-				return err
-			}
 			mapping.Merge(ctlgRefs)
 		}
-		if err := o.generateAllICSPs(mapping, dir); err != nil {
+		if err := o.generateAllManifests(mapping, dir); err != nil {
 			return err
 		}
 		// Move charts into results dir
@@ -422,7 +420,7 @@ func (o *MirrorOptions) newMirrorImageOptions(insecure bool) (*mirror.MirrorImag
 	return a, nil
 }
 
-func (o *MirrorOptions) generateAllICSPs(mapping image.TypedImageMapping, dir string) error {
+func (o *MirrorOptions) generateAllManifests(mapping image.TypedImageMapping, dir string) error {
 
 	allICSPs := []operatorv1alpha1.ImageContentSourcePolicy{}
 	releases := image.ByCategory(mapping, image.TypeOCPRelease)
@@ -445,6 +443,11 @@ func (o *MirrorOptions) generateAllICSPs(mapping image.TypedImageMapping, dir st
 		return err
 	}
 	if err := getICSP(operator, "operator", &OperatorBuilder{}); err != nil {
+		return err
+	}
+
+	ctlgRefs := image.ByCategory(mapping, image.TypeOperatorCatalog)
+	if err := WriteCatalogSource(ctlgRefs, dir); err != nil {
 		return err
 	}
 
