@@ -170,8 +170,8 @@ func (o *MirrorOptions) Publish(ctx context.Context) (image.TypedImageMapping, e
 	}
 
 	// Load image associations to find layers not present locally.
-	assocs, err := readAssociations(filepath.Join(tmpdir, config.AssociationsBasePath))
-	if err != nil {
+	assocs := incomingMeta.PastMirror.Association
+	if err := assocs.UpdatePath(); err != nil {
 		return allMappings, err
 	}
 
@@ -335,17 +335,6 @@ func (o *MirrorOptions) Publish(ctx context.Context) (image.TypedImageMapping, e
 	return allMappings, nil
 }
 
-// readAssociations will process and return data from the image associations file
-func readAssociations(assocPath string) (assocs image.AssociationSet, err error) {
-	f, err := os.Open(filepath.Clean(assocPath))
-	if err != nil {
-		return assocs, fmt.Errorf("error opening image associations file: %v", err)
-	}
-	defer f.Close()
-
-	return assocs, assocs.Decode(f)
-}
-
 // unpackImageSet unarchives all provided tar archives	if err != nil {
 func (o *MirrorOptions) unpackImageSet(a archive.Archiver, dest string) error {
 
@@ -402,7 +391,7 @@ func copyBlobFile(src io.Reader, dstPath string) error {
 	// Allowing exisitng files to be written to for now since we
 	// some blobs appears to be written multiple time
 	// TODO: investigate this issue
-	dst, err := os.OpenFile(dstPath, os.O_CREATE|os.O_WRONLY, 0666)
+	dst, err := os.OpenFile(filepath.Clean(dstPath), os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("error creating blob file: %v", err)
 	}
@@ -425,7 +414,7 @@ func (o *MirrorOptions) fetchBlobs(ctx context.Context, meta v1alpha2.Metadata, 
 
 	var errs []error
 	for layerDigest, dstBlobPaths := range missingLayers {
-		imgRef, err := o.findBlobRepo(meta.PastBlobs, layerDigest)
+		imgRef, err := o.findBlobRepo(meta.PastMirror.Association, layerDigest)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error finding remote layer %q: %v", layerDigest, err))
 		}
@@ -534,17 +523,17 @@ func (o *MirrorOptions) publishImage(mappings []imgmirror.Mapping, fromDir strin
 	return nil
 }
 
-func (o *MirrorOptions) findBlobRepo(blobs v1alpha2.Blobs, layerDigest string) (imagesource.TypedImageReference, error) {
-	var namespacename string
-	for _, blob := range blobs {
-		if blob.ID == layerDigest {
-			namespacename = blob.NamespaceName
-			break
-		}
-	}
-	if namespacename == "" {
+// FIXME(jpower432): this violates DIP
+func (o *MirrorOptions) findBlobRepo(assocs image.AssociationSet, layerDigest string) (imagesource.TypedImageReference, error) {
+
+	srcRef := image.GetImageFromBlob(assocs, layerDigest)
+	if srcRef == "" {
 		return imagesource.TypedImageReference{}, fmt.Errorf("layer %q is not present in previous metadata", layerDigest)
 	}
-	ref := path.Join(o.ToMirror, o.UserNamespace, namespacename)
-	return imagesource.ParseReference(ref)
+
+	dstRef, err := imagesource.ParseReference(srcRef)
+	dstRef.Ref.Registry = o.ToMirror
+	dstRef.Ref.Namespace = path.Join(o.UserNamespace, dstRef.Ref.Namespace)
+	return dstRef, err
+
 }
