@@ -436,6 +436,11 @@ func (o *MirrorOptions) generateAllManifests(mapping image.TypedImageMapping, di
 		return nil
 	}
 
+	ctlgRefs := image.ByCategory(mapping, image.TypeOperatorCatalog)
+	if err := WriteCatalogSource(ctlgRefs, dir); err != nil {
+		return err
+	}
+
 	if err := getICSP(releases, "release", &ReleaseBuilder{}); err != nil {
 		return err
 	}
@@ -443,11 +448,6 @@ func (o *MirrorOptions) generateAllManifests(mapping image.TypedImageMapping, di
 		return err
 	}
 	if err := getICSP(operator, "operator", &OperatorBuilder{}); err != nil {
-		return err
-	}
-
-	ctlgRefs := image.ByCategory(mapping, image.TypeOperatorCatalog)
-	if err := WriteCatalogSource(ctlgRefs, dir); err != nil {
 		return err
 	}
 

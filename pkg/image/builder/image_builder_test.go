@@ -1,4 +1,4 @@
-package mirror
+package builder
 
 import (
 	"context"
@@ -42,8 +42,8 @@ func TestCreateLayout(t *testing.T) {
 
 			targetRef := prepareImage(t, tmpdir)
 
-			builder := &catalogBuilder{
-				nameOpts: []name.Option{name.Insecure},
+			builder := &ImageBuilder{
+				NameOpts: []name.Option{name.Insecure},
 			}
 
 			var err error
@@ -85,17 +85,14 @@ func TestRun(t *testing.T) {
 
 			targetRef := prepareImage(t, tmpdir)
 
-			old := "/.wh.binary"
 			d1 := []byte("hello\ngo\n")
 			require.NoError(t, ioutil.WriteFile(filepath.Join(tmpdir, "test"), d1, 0644))
 
-			add, err := layerFromFile("binary", filepath.Join(tmpdir, "test"))
-			require.NoError(t, err)
-			delete, err := deleteLayer(old)
+			add, err := LayerFromPath("binary", filepath.Join(tmpdir, "test"))
 			require.NoError(t, err)
 
-			builder := &catalogBuilder{
-				nameOpts: []name.Option{name.Insecure},
+			builder := &ImageBuilder{
+				NameOpts: []name.Option{name.Insecure},
 			}
 
 			var layout layout.Path
@@ -107,7 +104,7 @@ func TestRun(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			err = builder.Run(context.Background(), targetRef, layout, []v1.Layer{add, delete}...)
+			err = builder.Run(context.Background(), targetRef, layout, func(*v1.ConfigFile) {}, []v1.Layer{add}...)
 			if test.err == "" {
 				require.NoError(t, err)
 			} else {
