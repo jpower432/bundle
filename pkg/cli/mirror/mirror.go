@@ -317,7 +317,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 		}
 		if len(cfg.Mirror.Operators) > 0 {
 
-			ctlgRefs, err := o.rebuildCatalogs(cmd.Context(), filepath.Join(o.Dir, config.SourceDir), cfg.Mirror.IsHeadsOnly())
+			ctlgRefs, err := o.rebuildCatalogs(cmd.Context(), filepath.Join(o.Dir, config.SourceDir))
 			if err != nil {
 				return fmt.Errorf("error rebuilding catalog images from file-based catalogs: %v", err)
 			}

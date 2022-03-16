@@ -317,7 +317,7 @@ func (o *MirrorOptions) Publish(ctx context.Context) (image.TypedImageMapping, e
 	}
 
 	if found {
-		ctlgRefs, err := o.rebuildCatalogs(ctx, tmpdir, incomingMeta.PastMirror.Mirror.IsHeadsOnly())
+		ctlgRefs, err := o.rebuildCatalogs(ctx, tmpdir)
 		if err != nil {
 			return allMappings, fmt.Errorf("error rebuilding catalog images from file-based catalogs: %v", err)
 		}

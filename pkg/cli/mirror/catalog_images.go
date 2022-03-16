@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/containerd/containerd/errdefs"
-	"github.com/containerd/containerd/remotes"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -19,16 +17,12 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/layout"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/openshift/library-go/pkg/image/reference"
-	"github.com/operator-framework/operator-registry/alpha/action"
-	"github.com/operator-framework/operator-registry/alpha/declcfg"
 	"github.com/operator-framework/operator-registry/pkg/containertools"
-	operatorimage "github.com/operator-framework/operator-registry/pkg/image"
 	"github.com/operator-framework/operator-registry/pkg/image/containerdregistry"
 	"github.com/sirupsen/logrus"
 
 	"github.com/openshift/oc-mirror/pkg/image"
 	"github.com/openshift/oc-mirror/pkg/image/builder"
-	"github.com/openshift/oc-mirror/pkg/operator"
 	"github.com/openshift/oc/pkg/cli/image/imagesource"
 )
 
@@ -47,7 +41,7 @@ func (o *MirrorOptions) unpackCatalog(dstDir string, filesInArchive map[string]s
 	return found, nil
 }
 
-func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string, headsOnly bool) (image.TypedImageMapping, error) {
+func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string) (image.TypedImageMapping, error) {
 	refs := image.TypedImageMapping{}
 	var err error
 
@@ -123,7 +117,7 @@ func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string, head
 	}
 	defer reg.Destroy()
 
-	if err := o.processCatalogRefs(ctx, catalogsByImage, reg, resolver, headsOnly); err != nil {
+	if err := o.processCatalogRefs(ctx, catalogsByImage); err != nil {
 		return nil, err
 	}
 
@@ -140,7 +134,7 @@ func (o *MirrorOptions) rebuildCatalogs(ctx context.Context, dstDir string, head
 	return refs, nil
 }
 
-func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage map[imagesource.TypedImageReference]string, reg operatorimage.Registry, resolver remotes.Resolver, headsOnly bool) error {
+func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage map[imagesource.TypedImageReference]string) error {
 	for ctlgRef, artifactDir := range catalogsByImage {
 		// An image for a particular catalog may not exist in the mirror registry yet,
 		// ex. when publish is run for the first time for a catalog (full/headsonly).
@@ -171,74 +165,25 @@ func (o *MirrorOptions) processCatalogRefs(ctx context.Context, catalogsByImage 
 			RemoteOpts: remoteOpts,
 		}
 
-		switch _, _, rerr := resolver.Resolve(ctx, refExact); {
-		case errors.Is(rerr, errdefs.ErrNotFound) || !headsOnly:
-			logrus.Infof("Catalog image %q found, building from file with file-based catalog ", refExact)
+		logrus.Infof("Catalog image %q found, building from file with file-based catalog ", refExact)
 
-			add, err := builder.LayerFromPath("/configs", filepath.Join(artifactDir, IndexDir, "index.json"))
-			if err != nil {
-				return fmt.Errorf("error creating add layer: %v", err)
-			}
+		add, err := builder.LayerFromPath("/configs", filepath.Join(artifactDir, IndexDir, "index.json"))
+		if err != nil {
+			return fmt.Errorf("error creating add layer: %v", err)
+		}
 
-			// Since we are defining the FBC as index.json, remove
-			// any .yaml files from the initial image to ensure they are not processed instead
-			deleted, err := deleteLayer("/configs/.wh.index.yaml")
-			if err != nil {
-				return fmt.Errorf("error creating deleted layer: %v", err)
-			}
-			layers = append(layers, add, deleted)
+		// Since we are defining the FBC as index.json, remove
+		// any .yaml files from the initial image to ensure they are not processed instead
+		deleted, err := deleteLayer("/configs/.wh.index.yaml")
+		if err != nil {
+			return fmt.Errorf("error creating deleted layer: %v", err)
+		}
+		layers = append(layers, add, deleted)
 
-			layoutDir := filepath.Join(artifactDir, LayoutsDir)
-			layoutPath, err = imgBuilder.CreateLayout("", layoutDir)
-			if err != nil {
-				return fmt.Errorf("error creating OCI layout: %v", err)
-			}
-		case rerr == nil:
-			logrus.Infof("Catalog image %q found, rendering with file-based catalog", refExact)
-
-			dcDir := filepath.Join(artifactDir, IndexDir)
-			dc, err := action.Render{
-				// Order the old ctlgRef before dcDir so new packages/channels/bundles overwrite
-				// existing counterparts.
-				Refs:           []string{refExact, dcDir},
-				AllowedRefMask: action.RefAll,
-				Registry:       reg,
-			}.Run(ctx)
-			if err != nil {
-				return err
-			}
-			// Remove any duplicate objects
-			merger := &operator.TwoWayStrategy{}
-			if err := merger.Merge(dc); err != nil {
-				return err
-			}
-			dcDirToBuild := filepath.Join(dcDir, "rendered")
-			if err := os.MkdirAll(dcDirToBuild, os.ModePerm); err != nil {
-				return err
-			}
-			renderedPath := filepath.Join(dcDirToBuild, "index.json")
-			f, err := os.Create(renderedPath)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-			if err := declcfg.WriteJSON(*dc, f); err != nil {
-				return err
-			}
-
-			add, err := builder.LayerFromPath("/configs", renderedPath)
-			if err != nil {
-				return fmt.Errorf("error creating add layer: %v", err)
-			}
-			layers = append(layers, add)
-
-			layoutDir := filepath.Join(dcDir, "layout")
-			layoutPath, err = imgBuilder.CreateLayout(refExact, layoutDir)
-			if err != nil {
-				return fmt.Errorf("error creating OCI layout: %v", err)
-			}
-		default:
-			return fmt.Errorf("error resolving existing catalog image %q: %v", refExact, rerr)
+		layoutDir := filepath.Join(artifactDir, LayoutsDir)
+		layoutPath, err = imgBuilder.CreateLayout("", layoutDir)
+		if err != nil {
+			return fmt.Errorf("error creating OCI layout: %v", err)
 		}
 
 		update := func(cfg *v1.ConfigFile) {
