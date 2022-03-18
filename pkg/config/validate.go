@@ -3,8 +3,9 @@ package config
 import (
 	"errors"
 
-	"github.com/openshift/oc-mirror/pkg/config/v1alpha2"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
+
+	"github.com/openshift/oc-mirror/pkg/api/v1alpha2"
 )
 
 type validationFunc func(cfg *v1alpha2.ImageSetConfiguration) error

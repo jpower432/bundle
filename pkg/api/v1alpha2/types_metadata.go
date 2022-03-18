@@ -103,24 +103,6 @@ func NewMetadata() Metadata {
 	}
 }
 
-func LoadMetadata(data []byte) (m Metadata, err error) {
-
-	gvk := GroupVersion.WithKind(MetadataKind)
-
-	dec := json.NewDecoder(bytes.NewBuffer(data))
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&m); err != nil {
-		return m, fmt.Errorf("decode %s: %v", gvk, err)
-	}
-
-	m.SetGroupVersionKind(gvk)
-
-	// Make sure blobs are sorted by timestamp
-	sort.Sort(sort.Reverse(m.PastMirror.Blobs))
-
-	return m, nil
-}
-
 func (m *Metadata) MarshalJSON() ([]byte, error) {
 
 	gvk := GroupVersion.WithKind(MetadataKind)
