@@ -22,7 +22,7 @@ func TestCreate(t *testing.T) {
 		},
 	}
 
-	cfg := v1alpha2.ImageSetConfiguration{}
+	cfg := v1alpha2.ImageSetConfigurationSpec{}
 	cfg.Mirror.AdditionalImages = append(cfg.Mirror.AdditionalImages, img)
 
 	opts := MirrorOptions{

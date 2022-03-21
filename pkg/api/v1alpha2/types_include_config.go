@@ -7,6 +7,7 @@ import (
 	"github.com/operator-framework/operator-registry/alpha/action"
 )
 
+//+k8s:deepcopy-gen=true
 type IncludeConfig struct {
 	// Packages to include.
 	Packages []IncludePackage `json:"packages" yaml:"packages"`
@@ -15,6 +16,7 @@ type IncludeConfig struct {
 // IncludePackage contains a name (required) and channels and/or versions
 // (optional) to include in the diff. The full package is only included if no channels
 // or versions are specified.
+//+k8s:deepcopy-gen=true
 type IncludePackage struct {
 	// Name of package.
 	Name string `json:"name" yaml:"name"`
@@ -27,6 +29,7 @@ type IncludePackage struct {
 
 // IncludeChannel contains a name (required) and versions (optional)
 // to include in the diff. The full channel is only included if no versions are specified.
+//+k8s:deepcopy-gen=true
 type IncludeChannel struct {
 	// Name of channel.
 	Name string `json:"name" yaml:"name"`
@@ -34,8 +37,10 @@ type IncludeChannel struct {
 	IncludeBundle `json:",inline"`
 }
 
+//+k8s:deepcopy-gen=true
 type IncludeBundle struct {
 	// StartingVersion to include, plus all versions in the upgrade graph to the channel head.
+	//+k8s:deepcopy-gen=false
 	StartingVersion semver.Version `json:"startingVersion,omitempty" yaml:"startingVersion,omitempty"`
 	// StartingBundle to include, plus all bundles in the upgrade graph to the channel head.
 	// Set this field only if the named bundle has no semantic version metadata.

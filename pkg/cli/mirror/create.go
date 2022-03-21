@@ -17,7 +17,7 @@ import (
 )
 
 // Create will plan a mirroring operation based on provided configuration
-func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (v1alpha2.Metadata, image.TypedImageMapping, error) {
+func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec) (v1alpha2.Metadata, image.TypedImageMapping, error) {
 	// Determine stateless or stateful mode.
 	// Empty storage configuration will trigger a metadata cleanup
 	// action and labels metadata as single use
@@ -61,7 +61,7 @@ func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfigu
 		meta.Uid = uuid.New()
 		thisRun.Sequence = 1
 		thisRun.Mirror = cfg.Mirror
-		f := func(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error) {
+		f := func(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec) (image.TypedImageMapping, error) {
 			if len(cfg.Mirror.Operators) != 0 {
 				operator := NewOperatorOptions(o)
 				operator.SkipImagePin = o.SkipImagePin
@@ -76,7 +76,7 @@ func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfigu
 		lastRun := meta.PastMirror
 		thisRun.Sequence = lastRun.Sequence + 1
 		thisRun.Mirror = cfg.Mirror
-		f := func(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error) {
+		f := func(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec) (image.TypedImageMapping, error) {
 			if len(cfg.Mirror.Operators) != 0 {
 				operator := NewOperatorOptions(o)
 				operator.SkipImagePin = o.SkipImagePin
@@ -90,7 +90,7 @@ func (o *MirrorOptions) Create(ctx context.Context, cfg v1alpha2.ImageSetConfigu
 	}
 }
 
-func (o *MirrorOptions) run(ctx context.Context, cfg *v1alpha2.ImageSetConfiguration, meta v1alpha2.Metadata, operatorPlan operatorFunc) (image.TypedImageMapping, error) {
+func (o *MirrorOptions) run(ctx context.Context, cfg *v1alpha2.ImageSetConfigurationSpec, meta v1alpha2.Metadata, operatorPlan operatorFunc) (image.TypedImageMapping, error) {
 
 	mmappings := image.TypedImageMapping{}
 
@@ -134,4 +134,4 @@ func (o *MirrorOptions) run(ctx context.Context, cfg *v1alpha2.ImageSetConfigura
 	return mmappings, nil
 }
 
-type operatorFunc func(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error)
+type operatorFunc func(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec) (image.TypedImageMapping, error)

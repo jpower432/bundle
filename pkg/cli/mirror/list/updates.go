@@ -67,7 +67,7 @@ func (o *UpdatesOptions) Validate() error {
 }
 
 func (o *UpdatesOptions) Run(ctx context.Context) error {
-	cfg, err := config.ReadConfig(o.ConfigPath)
+	cfg, err := config.LoadConfig(o.ConfigPath)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (o *UpdatesOptions) Run(ctx context.Context) error {
 	return nil
 }
 
-func (o UpdatesOptions) releaseUpdates(ctx context.Context, arch string, cfg v1alpha2.ImageSetConfiguration, last v1alpha2.PastMirror) error {
+func (o UpdatesOptions) releaseUpdates(ctx context.Context, arch string, cfg v1alpha2.ImageSetConfigurationSpec, last v1alpha2.PastMirror) error {
 	logrus.Info("Getting release update information")
 	lastMaxVersion := map[string]semver.Version{}
 	for _, ch := range last.Mirror.OCP.Channels {
@@ -152,7 +152,7 @@ func (o UpdatesOptions) releaseUpdates(ctx context.Context, arch string, cfg v1a
 	return nil
 }
 
-func (o UpdatesOptions) operatorUpdates(ctx context.Context, cfg v1alpha2.ImageSetConfiguration, meta v1alpha2.Metadata) error {
+func (o UpdatesOptions) operatorUpdates(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec, meta v1alpha2.Metadata) error {
 	logrus.Info("Getting operator update information")
 	dstDir, err := os.MkdirTemp(o.Dir, "updatetmp-")
 	if err != nil {

@@ -26,7 +26,7 @@ mirror:
     - name: ruby
     - name: python
     - name: nginx
-  additionalimages:
+  additionalImages:
     - name: registry.redhat.io/ubi8/ubi:latest
   helm:
     local:
@@ -38,6 +38,6 @@ mirror:
         charts:
           - name: podinfo
             version: 5.0.0
-  blockedimages:
+  blockedImages:
     - name: alpine
     - name: redis

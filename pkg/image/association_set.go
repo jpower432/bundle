@@ -171,6 +171,22 @@ func (as *AssociationSet) GetDigests() []string {
 	return digests
 }
 
+// GetImageFromBlob will return the first image found associated
+// to the specified layer digest
+func GetImageFromBlob(as AssociationSet, digest string) string {
+	for imageName, assocs := range as {
+		for _, assoc := range assocs {
+			for _, dgst := range assoc.LayerDigests {
+				if dgst == digest {
+					return imageName
+				}
+
+			}
+		}
+	}
+	return ""
+}
+
 func (as AssociationSet) validate() error {
 	var errs []error
 	for _, imageName := range as.Keys() {
@@ -204,18 +220,4 @@ func (as AssociationSet) validate() error {
 		}
 	}
 	return utilerrors.NewAggregate(errs)
-}
-
-func GetImageFromBlob(as AssociationSet, digest string) string {
-	for imageName, assocs := range as {
-		for _, assoc := range assocs {
-			for _, dgst := range assoc.LayerDigests {
-				if dgst == digest {
-					return imageName
-				}
-
-			}
-		}
-	}
-	return ""
 }

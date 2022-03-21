@@ -11,11 +11,9 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	// TODO(estroz): expected config.
 	type spec struct {
 		name      string
 		file      string
-		inline    string
 		assertion require.ErrorAssertionFunc
 		expConfig v1alpha2.ImageSetConfigurationSpec
 		expError  string
@@ -100,34 +98,16 @@ func TestLoadConfig(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "Invalid/UnknownKey",
-			inline: `
-apiVersion: mirror.openshift.io/v1alpha2
-kind: ImageSetConfiguration
-mirror:
-  foo: bar
-`,
-			assertion: require.Error,
-			expError:  `decode mirror.openshift.io/v1alpha2, Kind=ImageSetConfiguration: json: unknown field "foo"`,
-		},
 	}
 
 	for _, s := range specs {
 		t.Run(s.name, func(t *testing.T) {
-			data := []byte(s.inline)
-			if len(data) == 0 {
-				var err error
-				data, err = ioutil.ReadFile(s.file)
-				require.NoError(t, err)
-			}
-
-			cfg, err := LoadConfig(data)
+			cfg, err := LoadConfig(s.file)
 			s.assertion(t, err)
 			if err != nil {
 				require.EqualError(t, err, s.expError)
 			} else {
-				require.Equal(t, s.expConfig, cfg.ImageSetConfigurationSpec)
+				require.Equal(t, s.expConfig, cfg)
 			}
 		})
 	}
@@ -154,7 +134,10 @@ mirror:
   - catalog: registry.com/ns/baz:v1.2
 `
 
-	cfg, err := LoadConfig([]byte(headsOnlyCfg))
+	loader := NewLoader().WithContent([]byte(headsOnlyCfg))
+	conf := v1alpha2.ImageSetConfiguration{}
+	configLoader := Config(*loader).OfKind(&conf)
+	cfg, err := configLoader.Complete()
 	require.NoError(t, err)
 	require.Len(t, cfg.Mirror.OCP.Channels, 3)
 	require.Len(t, cfg.Mirror.Operators, 3)
@@ -166,6 +149,7 @@ mirror:
 	require.Equal(t, cfg.Mirror.Operators[2].IsHeadsOnly(), true)
 }
 
+// Need an invalid config to fail
 func TestLoadMetadata(t *testing.T) {
 	// TODO(estroz): expected metadata.
 	type spec struct {
@@ -180,15 +164,6 @@ func TestLoadMetadata(t *testing.T) {
 			name:      "Valid/Basic",
 			file:      filepath.Join("testdata", "metadata", "valid.json"),
 			assertion: require.NoError,
-		},
-		{
-			name: "Invalid/BadStructure",
-			inline: `---
-apiVersion: mirror.openshift.io/v1alpha2
-kind: ImageSetConfiguration
-foo: bar
-`,
-			assertion: require.Error,
 		},
 	}
 

@@ -209,7 +209,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 	case o.ManifestsOnly:
 		logrus.Info("Not implemented yet")
 	case len(o.OutputDir) > 0 && o.From == "":
-		cfg, err := config.ReadConfig(o.ConfigPath)
+		cfg, err := config.LoadConfig(o.ConfigPath)
 		if err != nil {
 			return err
 		}
@@ -279,7 +279,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 			return err
 		}
 	case len(o.ToMirror) > 0 && len(o.ConfigPath) > 0:
-		cfg, err := config.ReadConfig(o.ConfigPath)
+		cfg, err := config.LoadConfig(o.ConfigPath)
 		if err != nil {
 			return err
 		}
@@ -368,7 +368,7 @@ func (o *MirrorOptions) Run(cmd *cobra.Command, f kcmdutil.Factory) (err error) 
 }
 
 // mirrorImage downloads individual images from an image mapping
-func (o *MirrorOptions) mirrorMappings(cfg v1alpha2.ImageSetConfiguration, images image.TypedImageMapping, insecure bool) error {
+func (o *MirrorOptions) mirrorMappings(cfg v1alpha2.ImageSetConfigurationSpec, images image.TypedImageMapping, insecure bool) error {
 
 	opts, err := o.newMirrorImageOptions(insecure)
 	if err != nil {

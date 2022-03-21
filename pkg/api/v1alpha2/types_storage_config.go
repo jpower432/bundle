@@ -1,6 +1,7 @@
 package v1alpha2
 
 // StorageConfig configures how metadata is stored.
+//+k8s:deepcopy-gen=true
 type StorageConfig struct {
 	Registry *RegistryConfig `json:"registry,omitempty"`
 	Local    *LocalConfig    `json:"local,omitempty"`

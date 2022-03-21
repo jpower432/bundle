@@ -7,6 +7,8 @@ import (
 // ImageSetConfiguration object kind.
 const ImageSetConfigurationKind = "ImageSetConfiguration"
 
+// +kubebuilder:object:root=true
+
 // ImageSetConfiguration configures image set creation.
 type ImageSetConfiguration struct {
 	metav1.TypeMeta `json:",inline"`
@@ -14,6 +16,8 @@ type ImageSetConfiguration struct {
 	ImageSetConfigurationSpec `json:",inline"`
 }
 
+// ImageSetConfigurationSpec defines configuration for imagesets.
+//+k8s:deepcopy-gen=true
 type ImageSetConfigurationSpec struct {
 	Mirror Mirror `json:"mirror"`
 	// ArchiveSize is the size of the segmented archive in GB
@@ -22,6 +26,8 @@ type ImageSetConfigurationSpec struct {
 	StorageConfig StorageConfig `json:"storageConfig"`
 }
 
+// Mirror defines configuration for various content types (e.g. OCP, Operators, etc..)
+//+k8s:deepcopy-gen=true
 type Mirror struct {
 	OCP              OCP                `json:"ocp,omitempty"`
 	Operators        []Operator         `json:"operators,omitempty"`
@@ -31,6 +37,8 @@ type Mirror struct {
 	Samples          []SampleImages     `json:"samples,omitempty"`
 }
 
+// OCP defines OCP/OKD release channel configuration.
+//+k8s:deepcopy-gen=true
 type OCP struct {
 	Graph    bool             `json:"graph,omitempty"`
 	Channels []ReleaseChannel `json:"channels,omitempty"`
@@ -55,6 +63,7 @@ func (r ReleaseChannel) IsHeadsOnly() bool {
 }
 
 // Operator configures operator catalog mirroring.
+//+k8s:deepcopy-gen=true
 type Operator struct {
 	// Mirror specific operator packages, channels, and versions, and their dependencies.
 	// If HeadsOnly is true, these objects are mirrored on top of heads of all channels.
@@ -80,6 +89,8 @@ func (o Operator) IsHeadsOnly() bool {
 	return !o.AllPackages
 }
 
+// Helm is the configuration for a Helm repos and local charts
+//+k8s:deepcopy-gen=true
 type Helm struct {
 	// Repo is the helm repository containing the charts
 	Repos []Repo `json:"repos,omitempty"`
@@ -88,6 +99,7 @@ type Helm struct {
 }
 
 // Repo is the configuration for a Helm Repo
+//+k8s:deepcopy-gen=true
 type Repo struct {
 	// URL is the url of the helm repository
 	URL string `json:"url"`
@@ -98,6 +110,7 @@ type Repo struct {
 }
 
 // Chart is the information an individual Helm chart
+//+k8s:deepcopy-gen=true
 type Chart struct {
 	Name    string `json:"name"`
 	Version string `json:"version,omitempty"`
@@ -124,4 +137,9 @@ type BlockedImages struct {
 
 type SampleImages struct {
 	Image `json:",inline"`
+}
+
+// Complete returns the configuration for imageset
+func (c *ImageSetConfigurationSpec) Complete() (ImageSetConfigurationSpec, error) {
+	return *c, nil
 }

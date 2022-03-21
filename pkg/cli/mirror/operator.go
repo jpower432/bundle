@@ -62,12 +62,12 @@ func NewOperatorOptions(mo *MirrorOptions) *OperatorOptions {
 }
 
 // PlanFull plans a mirror for each catalog image in its entirety
-func (o *OperatorOptions) PlanFull(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error) {
+func (o *OperatorOptions) PlanFull(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec) (image.TypedImageMapping, error) {
 	return o.run(ctx, cfg, o.renderDCFull)
 }
 
 // PlanDiff plans only the diff between each old and new catalog image pair
-func (o *OperatorOptions) PlanDiff(ctx context.Context, cfg v1alpha2.ImageSetConfiguration, lastRun v1alpha2.PastMirror) (image.TypedImageMapping, error) {
+func (o *OperatorOptions) PlanDiff(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec, lastRun v1alpha2.PastMirror) (image.TypedImageMapping, error) {
 	f := func(ctx context.Context, reg *containerdregistry.Registry, ctlg v1alpha2.Operator) (*declcfg.DeclarativeConfig, error) {
 		return o.renderDCDiff(ctx, reg, ctlg, lastRun)
 	}
@@ -87,7 +87,7 @@ func (o *OperatorOptions) complete() {
 
 type renderDCFunc func(context.Context, *containerdregistry.Registry, v1alpha2.Operator) (*declcfg.DeclarativeConfig, error)
 
-func (o *OperatorOptions) run(ctx context.Context, cfg v1alpha2.ImageSetConfiguration, renderDC renderDCFunc) (image.TypedImageMapping, error) {
+func (o *OperatorOptions) run(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec, renderDC renderDCFunc) (image.TypedImageMapping, error) {
 	o.complete()
 
 	cleanup, err := o.mktempDir()

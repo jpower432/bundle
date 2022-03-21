@@ -14,6 +14,8 @@ import (
 // Metadata object kind.
 const MetadataKind = "Metadata"
 
+// +kubebuilder:object:root=true
+
 // Metadata configures image set creation.
 type Metadata struct {
 	metav1.TypeMeta `json:",inline"`
@@ -21,6 +23,7 @@ type Metadata struct {
 	MetadataSpec `json:",inline"`
 }
 
+//+k8s:deepcopy-gen=true
 type MetadataSpec struct {
 	// Uid uniquely identifies this metadata object.
 	Uid uuid.UUID `json:"uid"`
@@ -33,6 +36,7 @@ type MetadataSpec struct {
 	PastBlobs Blobs `json:"pastBlobs"`
 }
 
+//+k8s:deepcopy-gen=true
 type PastMirror struct {
 	Timestamp int        `json:"timestamp"`
 	Sequence  int        `json:"sequence"`
@@ -125,4 +129,9 @@ func (m *Metadata) MarshalJSON() ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// Complete returns the configuration for imageset
+func (m *MetadataSpec) Complete() (MetadataSpec, error) {
+	return *m, nil
 }

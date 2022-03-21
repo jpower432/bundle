@@ -47,7 +47,7 @@ func NewReleaseOptions(mo *MirrorOptions) *ReleaseOptions {
 }
 
 // Plan will pill release payloads based on user configuration
-func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, cfg *v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error) {
+func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, cfg *v1alpha2.ImageSetConfigurationSpec) (image.TypedImageMapping, error) {
 
 	var (
 		srcDir           = filepath.Join(o.Dir, config.SourceDir)

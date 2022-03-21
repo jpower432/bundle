@@ -1244,6 +1244,7 @@ oras.land/oras-go/pkg/oras
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/client
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/proto/client
 # sigs.k8s.io/controller-runtime v0.10.0
+## explicit
 sigs.k8s.io/controller-runtime/pkg/scheme
 # sigs.k8s.io/kustomize/api v0.8.11
 sigs.k8s.io/kustomize/api/builtins

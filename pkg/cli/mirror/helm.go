@@ -44,7 +44,7 @@ func NewHelmOptions(mo *MirrorOptions) *HelmOptions {
 
 }
 
-func (h *HelmOptions) PullCharts(ctx context.Context, cfg v1alpha2.ImageSetConfiguration) (image.TypedImageMapping, error) {
+func (h *HelmOptions) PullCharts(ctx context.Context, cfg v1alpha2.ImageSetConfigurationSpec) (image.TypedImageMapping, error) {
 
 	var images []v1alpha2.AdditionalImages
 
