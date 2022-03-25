@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
@@ -16,7 +17,7 @@ import (
 
 func LoadConfig(configPath string) (c v1alpha2.ImageSetConfiguration, err error) {
 
-	data, err := ioutil.ReadFile(configPath)
+	data, err := ioutil.ReadFile(filepath.Clean(configPath))
 	if err != nil {
 		return c, err
 	}
