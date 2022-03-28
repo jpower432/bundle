@@ -56,6 +56,11 @@ func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, 
 		errs             = []error{}
 	)
 
+	prevChannels := make(map[string]string, len(lastRun.OCPReleases))
+	for _, ch := range lastRun.OCPReleases {
+		prevChannels[ch.ReleaseChannel] = ch.MinVersion
+	}
+
 	for _, arch := range o.arch {
 
 		versionsByChannel := make(map[string]v1alpha2.ReleaseChannel, len(cfg.Mirror.OCP.Channels))
@@ -86,8 +91,15 @@ func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, 
 
 					// Update version to release channel
 					ch.MaxVersion = latest.String()
+					logrus.Debugf("Detected minimmum version as %s", ch.MaxVersion)
 					if len(ch.MinVersion) == 0 && ch.IsHeadsOnly() {
-						ch.MinVersion = latest.String()
+						min, found := prevChannels[ch.Name]
+						if !found {
+							// Starting at a new headsOnly channels
+							min = latest.String()
+						}
+						ch.MinVersion = min
+						logrus.Debugf("Detected minimmum version as %s", ch.MinVersion)
 					}
 				}
 
@@ -100,7 +112,19 @@ func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, 
 						continue
 					}
 					ch.MinVersion = first.String()
+					logrus.Debugf("Detected minimum version as %s", ch.MinVersion)
+					// This is a range and ensure the minimum is not recorded
+					// QUESTION(jpower432): Should we enforce this during config validation
+					// instead like operators?
+					ch.HeadsOnly = new(bool)
 				}
+				versionsByChannel[ch.Name] = ch
+			} else {
+				// This is a range and ensure the minimum is not recorded
+				// QUESTION(jpower432): Should we enforce this during config validation
+				// instead like operators?
+				logrus.Debugf("Processing minimum version %s and maximum version %s", ch.MinVersion, ch.MaxVersion)
+				ch.HeadsOnly = new(bool)
 				versionsByChannel[ch.Name] = ch
 			}
 
@@ -114,7 +138,12 @@ func (o *ReleaseOptions) Plan(ctx context.Context, lastRun v1alpha2.PastMirror, 
 
 		// Update cfg release channels with maximum and minimum versions
 		// if applicable
-		cfg.Mirror.OCP.Channels = updateReleaseChannel(cfg.Mirror.OCP.Channels, versionsByChannel)
+		for i, ch := range cfg.Mirror.OCP.Channels {
+			ch, found := versionsByChannel[ch.Name]
+			if found {
+				cfg.Mirror.OCP.Channels[i] = ch
+			}
+		}
 
 		if len(cfg.Mirror.OCP.Channels) > 1 {
 			newDownloads, err := o.getCrossChannelDownloads(ctx, arch, cfg.Mirror.OCP.Channels)
@@ -272,6 +301,7 @@ func (o *ReleaseOptions) getCrossChannelDownloads(ctx context.Context, arch stri
 func gatherUpdates(current, newest cincinnati.Update, updates []cincinnati.Update) downloads {
 	releaseDownloads := downloads{}
 	for _, update := range updates {
+		logrus.Debugf("Found update %s", update.Version)
 		releaseDownloads[update.Image] = struct{}{}
 	}
 
@@ -339,18 +369,6 @@ func (o *ReleaseOptions) getMapping(opts *release.MirrorOptions) (image.TypedIma
 	mappings[releaseImageRef] = dstReleaseRef
 
 	return mappings, nil
-}
-
-// updateReleaseChannel will add a version to the ReleaseChannel to record
-// for metadata
-func updateReleaseChannel(releaseChannels []v1alpha2.ReleaseChannel, versionsByKey map[string]v1alpha2.ReleaseChannel) []v1alpha2.ReleaseChannel {
-	for i, ch := range releaseChannels {
-		ch, found := versionsByKey[ch.Name]
-		if found {
-			releaseChannels[i] = ch
-		}
-	}
-	return releaseChannels
 }
 
 // Define download types

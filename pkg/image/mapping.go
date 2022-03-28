@@ -65,13 +65,11 @@ func (m TypedImageMapping) Add(srcRef, dstRef imagesource.TypedImageReference, t
 	m[srcTypedRef] = dstTypedRef
 }
 
-// Remove will remove an image from the map given the TypeImageReference and type
-func (m TypedImageMapping) Remove(ref imagesource.TypedImageReference, typ ImageType) {
-	typedRef := TypedImage{
-		TypedImageReference: ref,
-		Category:            typ,
+// Remove will remove a TypedImage from the mapping
+func (m TypedImageMapping) Remove(images ...TypedImage) {
+	for _, img := range images {
+		delete(m, img)
 	}
-	delete(m, typedRef)
 }
 
 // ByCategory will return a pruned mapping containing provided types

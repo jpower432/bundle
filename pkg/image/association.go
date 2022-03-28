@@ -89,14 +89,16 @@ func (as AssociationSet) UpdateValue(key string, value Association) error {
 }
 
 // Add stores a key-value pair in this multimap.
-func (as AssociationSet) Add(key string, value Association) {
+func (as AssociationSet) Add(key string, values ...Association) {
 	assocs, found := as[key]
-	if found {
-		assocs[value.Name] = value
-	} else {
-		assocs = make(Associations)
-		assocs[value.Name] = value
-		as[key] = assocs
+	for _, value := range values {
+		if found {
+			assocs[value.Name] = value
+		} else {
+			assocs = make(Associations)
+			assocs[value.Name] = value
+			as[key] = assocs
+		}
 	}
 }
 
