@@ -1,10 +1,11 @@
-package bundle
+package mirror
 
 import (
 	"testing"
 
 	"github.com/openshift/oc-mirror/pkg/api/v1alpha2"
 	"github.com/openshift/oc/pkg/cli/image/imagesource"
+	"github.com/stretchr/testify/require"
 )
 
 func TestImageBlocking(t *testing.T) {
@@ -18,7 +19,7 @@ func TestImageBlocking(t *testing.T) {
 		want   bool
 	}{
 		{
-			name: "testing want to block",
+			name: "Success/ImageBlocked",
 			fields: fields{
 				blockedImages: []v1alpha2.Image{{Name: "alpine"}},
 			},
@@ -26,7 +27,7 @@ func TestImageBlocking(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "testing do not want to block",
+			name: "Success/ImageNotBlocked",
 			fields: fields{
 				blockedImages: []v1alpha2.Image{{Name: "alpine"}},
 			},
@@ -34,7 +35,7 @@ func TestImageBlocking(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "testing do not want to block, contains keyword",
+			name: "Success/ImageNotBlockedContainsKeyword",
 			fields: fields{
 				blockedImages: []v1alpha2.Image{{Name: "alpine"}},
 			},
@@ -42,7 +43,7 @@ func TestImageBlocking(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "testing with image not tag",
+			name: "Success/ImageBlockedNoTag",
 			fields: fields{
 				blockedImages: []v1alpha2.Image{{Name: "openshift-migration-velero-restic-restore-helper-rhel8"}},
 			},
@@ -50,23 +51,16 @@ func TestImageBlocking(t *testing.T) {
 			want: true,
 		},
 	}
-	for _, tt := range tests {
+	for _, test := range tests {
 		cfg := v1alpha2.ImageSetConfiguration{}
 		cfg.Mirror = v1alpha2.Mirror{
-			BlockedImages: tt.fields.blockedImages,
+			BlockedImages: test.fields.blockedImages,
 		}
 
-		img, err := imagesource.ParseReference(tt.ref)
+		img, err := imagesource.ParseReference(test.ref)
+		require.NoError(t, err)
 
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		actual := IsBlocked(cfg.Mirror.BlockedImages, img.Ref)
-
-		if actual != tt.want {
-			t.Errorf("Test %s: Expected '%v', got '%v'", tt.name, tt.want, actual)
-		}
-
+		actual := isBlocked(cfg.Mirror.BlockedImages, img.Ref)
+		require.Equal(t, test.want, actual)
 	}
 }
