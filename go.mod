@@ -8,7 +8,7 @@ require (
 	github.com/containerd/containerd v1.5.8
 	github.com/containers/image/v5 v5.16.0
 	github.com/docker/cli v20.10.12+incompatible
-	github.com/docker/distribution v2.7.1+incompatible
+	github.com/docker/distribution v2.8.0+incompatible
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/go-logr/logr v1.2.0
 	github.com/google/go-containerregistry v0.8.0
