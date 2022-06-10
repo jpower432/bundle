@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
-	github.com/containerd/containerd v1.5.11
+	github.com/containerd/containerd v1.5.13
 	github.com/containers/image/v5 v5.16.0
 	github.com/docker/cli v20.10.12+incompatible
 	github.com/docker/distribution v2.8.1+incompatible
@@ -41,7 +41,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f // indirect
+require golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
