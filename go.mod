@@ -25,7 +25,7 @@ require (
 	github.com/operator-framework/operator-registry v1.26.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.7.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.0.0-20220408190544-5352b0902921 // indirect
@@ -176,7 +176,7 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/stefanberger/go-pkcs11uri v0.0.0-20201008174630-78d3cae3a980 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
-	github.com/sylabs/sif/v2 v2.7.1 // indirect
+	github.com/sylabs/sif/v2 v2.8.1 // indirect
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635 // indirect
 	github.com/tchap/go-patricia v2.3.0+incompatible // indirect
 	github.com/theupdateframework/go-tuf v0.3.1 // indirect
